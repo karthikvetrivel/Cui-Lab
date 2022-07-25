@@ -27,13 +27,6 @@ class MainWindow(QDialog):
          # Bind all the button clicks in the main window
         self.scanButton.clicked.connect(self.goToScan)
         self.calibrateBtn.clicked.connect(self.go_to_calibrate)
-
-        # print("------- RELOADING THIS PAGE ---------")
-        # self.statusLabel.setText("Status: Not Loaded")
-        # settings = json.load(open('settings.json'))
-        # if settings['calibrationComplete']: 
-        #     self.statusLabel.setText("Status: Calibration Complete")
-        # else:
         self.statusLabel.setText("Status: Calibration Required")
         self.statusLabel.setStyleSheet("color: red;")
 

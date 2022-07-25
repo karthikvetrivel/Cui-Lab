@@ -9,11 +9,6 @@ portname ='/dev/cu.usbserial-FT3J30KX'
 
 ser = serial.Serial(portname, baud_rate, timeout=timeout_sec)  # open serial port
 print(ser.name)            # check which port was really used
-# ser.write('QUE?\r\n'.encode())     # write a string querying the state of the machine
-# s = ser.readlines() # read the state of the machine
-# for line in s:
-#     print(line)         # print the state of the machine
-# ser.close()        
 
 # ------ PART 2 -----
 
@@ -73,9 +68,7 @@ def update_table_mode_output(ser): #funtion to output trigger signal Output #7 o
     #stop_table_mode_output(ser)
     ser.write(b'I a\r\n')
 
-
-
-def main(arg1):
+def main():
     print("FIRING THE LASER")
     dts_ms = np.array([0.5,0.5,0.5,0.5,0.5])   
     fs_Hz_ch0 = np.array([67,71,75,79,83])*1e6  #right, minus y #82.7
@@ -87,6 +80,11 @@ def main(arg1):
     write_table_mode_data_to_dds(fs_Hz_ch1, dts_ms, ch=1, ser=ser)
     update_table_mode_output(ser) #update for the trigger signal
     start_table_mode_output(ser)
+
+
+def fire_single(pair):
+    print("Firing single spot")
+
 
 
 if __name__ == "__main__":

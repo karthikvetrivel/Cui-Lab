@@ -14,9 +14,14 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 # Image and Centroid Finding Imports
 from PIL import Image
-from photutils.datasets import make_4gaussians_image
-from photutils.centroids import centroid_com, centroid_quadratic
-from photutils.centroids import centroid_1dg, centroid_2dg
+from photutils.centroids import centroid_com
+
+# Acquire Image
+import cameraAcquisition
+import dds9m
+
+
+
 
 
 currentCalibrationSpot = 0
@@ -198,8 +203,7 @@ class CalibrationScreen(QtWidgets.QMainWindow):
             self.newWindow.show()
             widget.close()
 
-
-           
+  
 class Canvas(FigureCanvas):
     def __init__(self, parent):
         fig, self.ax = plt.subplots(figsize=(5, 4), dpi=100)
@@ -209,11 +213,10 @@ class Canvas(FigureCanvas):
         """ 
         Matplotlib Script
         """
-
+        
+        cameraAcquisition.main()
         im = np.array(Image.open('laserspots.jpg').convert('L'))
-        centroid_im1 = im[450:700, 350:620]
-        plt.imshow(centroid_im1)
-        point_x, point_y = centroid_com(centroid_im1)
+        point_x, point_y = centroid_com(im)
         plt.plot(point_x, point_y, marker="+", ms=8, mew=1, color="red")
 
         # UPDATE GLOBAL VARIABLES
@@ -232,7 +235,6 @@ class Canvas2(FigureCanvas):
         Matplotlib Script
         """
         im = np.array(Image.open('laserspots.jpg').convert('L'))
-        centroid_im1 = im[450:700, 350:620]
 
         def mouse_event(event):
             chart = Canvas2(self)
@@ -249,7 +251,7 @@ class Canvas2(FigureCanvas):
             calibrationPositionData[currentCalibrationSpot] = (event.xdata, event.ydata)
 
         cid = fig.canvas.mpl_connect('button_press_event', mouse_event)
-        plt.imshow(centroid_im1)
+        plt.imshow(im)
 
 
 app = QApplication(sys.argv)
@@ -266,6 +268,3 @@ try:
    sys.exit(app.exec_())
 except:
     print("Exiting")
-
-# if __name__ == "__main__":
-# main()
