@@ -1,8 +1,9 @@
 import os
 import PySpin
 import sys
+import dds9m
 
-NUM_IMAGES = 1  # number of images to grab
+NUM_IMAGES = 4  # number of images to grab
 
 def acquire_images(cam, nodemap, nodemap_tldevice):
     print('*** IMAGE ACQUISITION ***\n')
@@ -39,6 +40,9 @@ def acquire_images(cam, nodemap, nodemap_tldevice):
         # Retrieve, convert, and save images
         for i in range(NUM_IMAGES):
             try:
+                dds9m.open_port()
+                dds9m.fire_single()
+                dds9m.close_port()
                 image_result = cam.GetNextImage(1000)
                 if image_result.IsIncomplete():
                     print('Image incomplete with image status %d ...' % image_result.GetImageStatus())
@@ -54,7 +58,7 @@ def acquire_images(cam, nodemap, nodemap_tldevice):
 
                     # Create a unique filename
                     if device_serial_number:
-                        filename = 'laserspots.jpg'
+                        filename = 'laserspots[%d].jpg' % i
                     else:  # if serial number is empty
                         filename = 'Acquisition-%d.jpg' % i
 
@@ -226,7 +230,7 @@ def main():
     # Release system instance
     system.ReleaseInstance()
 
-    input('Done! Press Enter to exit...')
+    # input('Done! Press Enter to exit...')
     return result
 
 if __name__ == '__main__':

@@ -3,6 +3,7 @@ import numpy as np
 import serial
 
 # ------ PART 1 -----
+
 baud_rate = 19200
 timeout_sec = 5
 portname ='/dev/cu.usbserial-FT3J30KX'
@@ -84,6 +85,27 @@ def main():
 
 def fire_single(pair):
     print("Firing single spot")
+    dts_ms = np.array([0.5])
+    fs_Hz_ch0 = np.array([pair[1]])
+    fs_Hz_ch1 = np.array([pair[0]])
+
+    # write to DDS9m
+    stop_table_mode_output(ser)
+    write_table_mode_data_to_dds(fs_Hz_ch0, dts_ms, ch=0, ser=ser)
+    write_table_mode_data_to_dds(fs_Hz_ch1, dts_ms, ch=1, ser=ser)
+    update_table_mode_output(ser) #update for the trigger signal
+    start_table_mode_output(ser)
+
+def open_port(): 
+    global ser
+    baud_rate = 19200
+    timeout_sec = 5
+    portname ='/dev/cu.usbserial-FT3J30KX'
+
+    ser = serial.Serial(portname, baud_rate, timeout=timeout_sec)  # open serial port
+
+def close_port():
+    ser.close()
 
 
 

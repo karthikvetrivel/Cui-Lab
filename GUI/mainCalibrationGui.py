@@ -17,7 +17,7 @@ from PIL import Image
 from photutils.centroids import centroid_com
 
 # Acquire Image
-import cameraAcquisition
+# import cameraAcquisition
 # import dds9m
 
 
@@ -57,7 +57,6 @@ class MainWindow(QDialog):
             self.tableWidget.setItem(i, 0, x_item)
             self.tableWidget.setItem(i, 1, y_item)
         
-
         # Initialize properties of the spinwheel
         self.numPairSelect.setMinimum(2)
         self.numPairSelect.setMaximum(8)
@@ -70,6 +69,7 @@ class MainWindow(QDialog):
         global NUM_SPOTS
         NUM_SPOTS = self.numPairSelect.value()
         print("Calibration Function Reached")
+        # cameraAcquisition.main()
         widget.setCurrentIndex(widget.currentIndex() + 1)
         widget.show()
 
@@ -213,19 +213,20 @@ class Canvas(FigureCanvas):
         """ 
         Matplotlib Script
         """
-
-        cameraAcquisition.main()
-        im = np.array(Image.open('laserspots').convert('L'))
+        global currentCalibrationSpot
+        spotImage = 'laserspots%d.jpg' % (currentCalibrationSpot)
+        im = np.array(Image.open(spotImage).convert('L'))
         point_x, point_y = centroid_com(im)
         plt.plot(point_x, point_y, marker="+", ms=8, mew=1, color="red")
 
         # UPDATE GLOBAL VARIABLES
         global calibrationPositionData
-        global currentCalibrationSpot
+        # global currentCalibrationSpot
     
         calibrationPositionData[currentCalibrationSpot] = (point_x, point_y)
         
 class Canvas2(FigureCanvas):
+    global NUM_SPOTS
     def __init__(self, parent):
         fig, self.ax = plt.subplots(figsize=(5, 4), dpi=100)
         super().__init__(fig)
@@ -234,8 +235,9 @@ class Canvas2(FigureCanvas):
         """ 
         Matplotlib Script
         """
-        im = np.array(Image.open('laserspots').convert('L'))
-
+        global currentCalibrationSpot
+        spotImage = 'laserspots[%d].jpg' % (currentCalibrationSpot)
+        im = np.array(Image.open(spotImage).convert('L'))
         def mouse_event(event):
             chart = Canvas2(self)
             chart.setFixedWidth(800)
@@ -246,7 +248,7 @@ class Canvas2(FigureCanvas):
             
             # UPDATE GLOBAL VARIABLES
             global calibrationPositionData
-            global currentCalibrationSpot
+            # global currentCalibrationSpot
         
             calibrationPositionData[currentCalibrationSpot] = (event.xdata, event.ydata)
 
