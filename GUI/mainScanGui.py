@@ -70,9 +70,6 @@ class ScanWindow(QDialog):
         chart.show()  
 
     def go_to_calibrate(self):
-        # widget.setCurrentIndex(widget.currentIndex() - 1)
-        # import mainCalibrationGui
-        # mainCalibrationGui.widget.show()
         import mainCalibrationGui
         self.newWindow = mainCalibrationGui.widget
         self.newWindow.show()
