@@ -54,7 +54,7 @@ def acquire_images(cam, nodemap, nodemap_tldevice):
 
                     # Create a unique filename
                     if device_serial_number:
-                        filename = '../../../../Documents/Cui-Lab/laserspots.jpg' % (device_serial_number, i)
+                        filename = 'laserspots.jpg' % (device_serial_number, i)
                     else:  # if serial number is empty
                         filename = 'Acquisition-%d.jpg' % i
 
