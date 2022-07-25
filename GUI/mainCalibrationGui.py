@@ -18,7 +18,7 @@ from photutils.centroids import centroid_com
 
 # Acquire Image
 import cameraAcquisition
-import dds9m
+# import dds9m
 
 
 
@@ -213,7 +213,7 @@ class Canvas(FigureCanvas):
         """ 
         Matplotlib Script
         """
-        
+
         cameraAcquisition.main()
         im = np.array(Image.open('laserspots.jpg').convert('L'))
         point_x, point_y = centroid_com(im)
