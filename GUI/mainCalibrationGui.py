@@ -215,7 +215,7 @@ class Canvas(FigureCanvas):
         """
 
         cameraAcquisition.main()
-        im = np.array(Image.open('laserspots.jpg').convert('L'))
+        im = np.array(Image.open('laserspots').convert('L'))
         point_x, point_y = centroid_com(im)
         plt.plot(point_x, point_y, marker="+", ms=8, mew=1, color="red")
 
@@ -234,7 +234,7 @@ class Canvas2(FigureCanvas):
         """ 
         Matplotlib Script
         """
-        im = np.array(Image.open('laserspots.jpg').convert('L'))
+        im = np.array(Image.open('laserspots').convert('L'))
 
         def mouse_event(event):
             chart = Canvas2(self)
