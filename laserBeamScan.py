@@ -15,4 +15,4 @@ with open("settings.json", "w") as jsonFile:
 
 print("Starting Program")
 
-# import GUI.mainCalibrationGui
+import GUI.mainCalibrationGui

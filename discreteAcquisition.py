@@ -48,8 +48,7 @@ def acquire_images(data, cam, nodemap, nodemap_tldevice):
         # Retrieve, convert, and save images
         for i in range(NUM_IMAGES):
             try:
-                print(data)
-                spot = data[i]
+                spot = data[str(i)]
                 baud_rate = 19200
                 timeout_sec = 5
                 portname ='/dev/cu.usbserial-FT3J30KX'
@@ -166,6 +165,8 @@ def run_single_camera(cam):
         # Acquire images
         with open("frequencyData.json", "r") as jsonFile:
             data = json.load(jsonFile)
+        
+
         result &= acquire_images(data, cam, nodemap, nodemap_tldevice)
 
         # Deinitialize camera
