@@ -65,7 +65,7 @@ class MainWindow(QDialog):
         global NUM_SPOTS
         NUM_SPOTS = self.numPairSelect.value()
         print("Calibration Function Reached")
-        # discreteAcquisition.main(NUM_SPOTS)
+        discreteAcquisition.main(NUM_SPOTS)
         widget.setCurrentIndex(widget.currentIndex() + 1)
         widget.show()
 
