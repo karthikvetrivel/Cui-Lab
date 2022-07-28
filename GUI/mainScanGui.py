@@ -151,7 +151,7 @@ class Canvas(FigureCanvas):
 
                         # Getting the image data as a numpy array
                         image_data = image_result.GetNDArray()
-                        im = image_data.convert('L')
+                        # im = image_data.convert('L')
                         # Draws an image on the current figure
                         plt.imshow(im, cmap='gray')
                         for pair in SPOTS_TO_SCAN:
