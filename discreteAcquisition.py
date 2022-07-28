@@ -178,7 +178,7 @@ def run_single_camera(cam):
     return result
 
 
-def main(images):
+def run(images):
     """
     Example entry point; please see Enumeration example for more in-depth
     comments on preparing and cleaning up the system.
@@ -254,9 +254,3 @@ def main(images):
     # input('Done! Press Enter to exit...')
     return result
 
-
-if __name__ == '__main__':
-    if main():
-        sys.exit(0)
-    else:
-        sys.exit(1)
