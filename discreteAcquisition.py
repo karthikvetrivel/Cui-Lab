@@ -48,6 +48,7 @@ def acquire_images(data, cam, nodemap, nodemap_tldevice):
         # Retrieve, convert, and save images
         for i in range(NUM_IMAGES):
             try:
+                print(data)
                 spot = data[i]
                 baud_rate = 19200
                 timeout_sec = 5
