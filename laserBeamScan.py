@@ -12,4 +12,7 @@ data["calibrationComplete"] = False
 with open("settings.json", "w") as jsonFile:
     json.dump(data, jsonFile)
 
+
+print("Starting Program")
+
 import GUI.mainCalibrationGui
