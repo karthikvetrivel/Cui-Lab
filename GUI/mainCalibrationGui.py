@@ -1,5 +1,6 @@
 import sys
 import json
+import discreteAcquisition
 
 # All necessary PyQt5 imports
 from PyQt5.uic import loadUi
@@ -16,20 +17,13 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PIL import Image
 from photutils.centroids import centroid_com
 
-# Acquire Image
-# import cameraAcquisition
-# import dds9m
-
-
-
-
-
 currentCalibrationSpot = 0
 calibrationPositionData = {}
 NUM_SPOTS = 4
 
 class MainWindow(QDialog):
     frequencyJson = {}
+ 
     def __init__(self):
         super(MainWindow, self).__init__()
         loadUi("mainCalibrationGui.ui", self)
@@ -41,13 +35,13 @@ class MainWindow(QDialog):
 
         # Initialize properties of the table
         self.tableWidget.setColumnCount(2)
-        # self.tableWidget.setRowCount(0)
         self.tableWidget.setHorizontalHeaderLabels(("X Frequency", "Y Frequency"))
 
         with open("settings.json", "r") as jsonFile:
-                data = json.load(jsonFile)
+            data = json.load(jsonFile)
 
         for i, val in enumerate(data['calibrationFrequencies']):
+            self.frequencyJson[i] = [val[0], val[1]]
             x_item = QTableWidgetItem(str(val[0]))
             y_item = QTableWidgetItem(str(val[1]))
             x_item.setTextAlignment(Qt.AlignCenter)
@@ -60,7 +54,9 @@ class MainWindow(QDialog):
         # Initialize properties of the spinwheel
         self.numPairSelect.setMinimum(2)
         self.numPairSelect.setMaximum(8)
-
+        
+        with open('frequencyData.json', 'w') as f:
+            json.dump(self.frequencyJson, f)
         widget.show()
 
 
@@ -69,20 +65,16 @@ class MainWindow(QDialog):
         global NUM_SPOTS
         NUM_SPOTS = self.numPairSelect.value()
         print("Calibration Function Reached")
-        # cameraAcquisition.main()
+        # discreteAcquisition.main(NUM_SPOTS)
         widget.setCurrentIndex(widget.currentIndex() + 1)
         widget.show()
 
     def reset_table(self):
         # TODO: RESET THE JSON FILE
         self.tableWidget.setRowCount(0)
-        with open("settings.json", "r") as jsonFile:
-            data = json.load(jsonFile)
-
-        data["calibrationFrequencies"] = []
-
-        with open("settings.json", "w") as jsonFile:
-            json.dump(data, jsonFile)
+        self.frequencyJson = {}
+        with open('frequencyData.json', 'w') as f:
+            json.dump(self.frequencyJson, f)
 
         
     def add_entry(self):
@@ -110,8 +102,7 @@ class MainWindow(QDialog):
                 self.tableWidget.setItem(currentRowCount, 0, x_item)
                 self.tableWidget.setItem(currentRowCount, 1, y_item)
 
-                self.frequencyJson[currentRowCount] = (x_freq, y_freq)
-                print(self.frequencyJson)
+                self.frequencyJson[currentRowCount] = (int(x_freq), int(y_freq))
 
                 with open('frequencyData.json', 'w') as f:
                     json.dump(self.frequencyJson, f)
@@ -206,7 +197,7 @@ class CalibrationScreen(QtWidgets.QMainWindow):
   
 class Canvas(FigureCanvas):
     def __init__(self, parent):
-        fig, self.ax = plt.subplots(figsize=(5, 4), dpi=100)
+        fig, self.ax = plt.subplots(figsize=(6, 4), dpi=100)
         super().__init__(fig)
         self.setParent(parent)
 
@@ -216,13 +207,12 @@ class Canvas(FigureCanvas):
         global currentCalibrationSpot
         spotImage = 'laserspots%d.jpg' % (currentCalibrationSpot)
         im = np.array(Image.open(spotImage).convert('L'))
+        plt.imshow(im)
         point_x, point_y = centroid_com(im)
         plt.plot(point_x, point_y, marker="+", ms=8, mew=1, color="red")
 
         # UPDATE GLOBAL VARIABLES
         global calibrationPositionData
-        # global currentCalibrationSpot
-    
         calibrationPositionData[currentCalibrationSpot] = (point_x, point_y)
         
 class Canvas2(FigureCanvas):
@@ -236,7 +226,7 @@ class Canvas2(FigureCanvas):
         Matplotlib Script
         """
         global currentCalibrationSpot
-        spotImage = 'laserspots[%d].jpg' % (currentCalibrationSpot)
+        spotImage = 'laserspots%d.jpg' % (currentCalibrationSpot)
         im = np.array(Image.open(spotImage).convert('L'))
         def mouse_event(event):
             chart = Canvas2(self)
@@ -248,8 +238,6 @@ class Canvas2(FigureCanvas):
             
             # UPDATE GLOBAL VARIABLES
             global calibrationPositionData
-            # global currentCalibrationSpot
-        
             calibrationPositionData[currentCalibrationSpot] = (event.xdata, event.ydata)
 
         cid = fig.canvas.mpl_connect('button_press_event', mouse_event)

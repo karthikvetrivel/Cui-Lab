@@ -4,12 +4,6 @@ import serial
 
 # ------ PART 1 -----
 
-baud_rate = 19200
-timeout_sec = 5
-portname ='/dev/cu.usbserial-FT3J30KX'
-
-ser = serial.Serial(portname, baud_rate, timeout=timeout_sec)  # open serial port
-print(ser.name)            # check which port was really used
 
 # ------ PART 2 -----
 
@@ -69,7 +63,7 @@ def update_table_mode_output(ser): #funtion to output trigger signal Output #7 o
     #stop_table_mode_output(ser)
     ser.write(b'I a\r\n')
 
-def main():
+def main(ser):
     print("FIRING THE LASER")
     dts_ms = np.array([0.5,0.5,0.5,0.5,0.5])   
     fs_Hz_ch0 = np.array([67,71,75,79,83])*1e6  #right, minus y #82.7
@@ -83,7 +77,7 @@ def main():
     start_table_mode_output(ser)
 
 
-def fire_single(pair):
+def fire_single(ser, pair):
     print("Firing single spot")
     dts_ms = np.array([0.5])
     fs_Hz_ch0 = np.array([pair[1]])
@@ -104,7 +98,7 @@ def open_port():
 
     ser = serial.Serial(portname, baud_rate, timeout=timeout_sec)  # open serial port
 
-def close_port():
+def close_port(ser):
     ser.close()
 
 

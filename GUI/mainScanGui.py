@@ -3,7 +3,10 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QDialog, QMessag
 from PyQt5.uic import loadUi
 import sys
 import json
-# import dds9m
+import PySpin
+from matplotlib import image
+import dds9m
+import serial
 
 # Necessary Plotting imports
 import numpy as np
@@ -12,9 +15,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 # Image and Centroid Finding Imports
 from PIL import Image
-from photutils.datasets import make_4gaussians_image
-from photutils.centroids import centroid_com, centroid_quadratic
-from photutils.centroids import centroid_1dg, centroid_2dg
 
 
 NUM_SPOTS = 0
@@ -72,10 +72,14 @@ class ScanWindow(QDialog):
         widget.setCurrentIndex(widget.currentIndex() - 1)
 
     def activate_scan(self):
-        # dds9m.main(SPOTS_TO_SCAN)
+        global ser
+        baud_rate = 19200
+        timeout_sec = 5
+        portname ='/dev/cu.usbserial-FT3J30KX'
+        ser = serial.Serial(portname, baud_rate, timeout=timeout_sec)
+        dds9m.main(ser)
         return
         
-
 
 class Canvas(FigureCanvas):
     num_clicks = 0
@@ -90,17 +94,86 @@ class Canvas(FigureCanvas):
         """ 
         Matplotlib Script
         """
-        im = np.array(Image.open('scanningTest.png').convert('L'))
-        x1, x2 = centroid_com(im)
+        system = PySpin.System.GetInstance()
+        cam = (system.GetCameras())[0]
+        nodemap_tldevice = cam.GetTLDeviceNodeMap()
+        # Initialize camera
+        cam.Init()
+        # Retrieve GenICam nodemap
+        nodemap = cam.GetNodeMap()
+        # Acquire images
+        sNodemap = cam.GetTLStreamNodeMap()
+        # Change bufferhandling mode to NewestOnly
+        node_bufferhandling_mode = PySpin.CEnumerationPtr(sNodemap.GetNode('StreamBufferHandlingMode'))
+        if not PySpin.IsAvailable(node_bufferhandling_mode) or not PySpin.IsWritable(node_bufferhandling_mode):
+            print('Unable to set stream buffer handling mode.. Aborting...')
+            return False
+        # Retrieve entry node from enumeration node
+        node_newestonly = node_bufferhandling_mode.GetEntryByName('NewestOnly')
+        if not PySpin.IsAvailable(node_newestonly) or not PySpin.IsReadable(node_newestonly):
+            print('Unable to set stream buffer handling mode.. Aborting...')
+            return False
+        # Retrieve integer value from entry node
+        node_newestonly_mode = node_newestonly.GetValue()
+        # Set integer value from entry node as new value of enumeration node
+        node_bufferhandling_mode.SetIntValue(node_newestonly_mode)
+
+        try:
+            node_acquisition_mode = PySpin.CEnumerationPtr(nodemap.GetNode('AcquisitionMode'))
+            if not PySpin.IsAvailable(node_acquisition_mode) or not PySpin.IsWritable(node_acquisition_mode):
+                print('Unable to set acquisition mode to continuous (enum retrieval). Aborting...')
+                return False
+
+            # Retrieve entry node from enumeration node
+            node_acquisition_mode_continuous = node_acquisition_mode.GetEntryByName('Continuous')
+            if not PySpin.IsAvailable(node_acquisition_mode_continuous) or not PySpin.IsReadable(
+                    node_acquisition_mode_continuous):
+                print('Unable to set acquisition mode to continuous (entry retrieval). Aborting...')
+                return False
+            acquisition_mode_continuous = node_acquisition_mode_continuous.GetValue()
+            node_acquisition_mode.SetIntValue(acquisition_mode_continuous)
+            print('Acquisition mode set to continuous...')
+            cam.BeginAcquisition()
+            print('Acquiring images...')
+            device_serial_number = ''
+            node_device_serial_number = PySpin.CStringPtr(nodemap_tldevice.GetNode('DeviceSerialNumber'))
+            if PySpin.IsAvailable(node_device_serial_number) and PySpin.IsReadable(node_device_serial_number):
+                device_serial_number = node_device_serial_number.GetValue()
+                print('Device serial number retrieved as %s...' % device_serial_number)
+
+            while(True):
+                try:    
+                    image_result = cam.GetNextImage(1000)
+                    if image_result.IsIncomplete():
+                        print('Image incomplete with image status %d ...' % image_result.GetImageStatus())
+
+                    else:                    
+
+                        # Getting the image data as a numpy array
+                        image_data = image_result.GetNDArray()
+                        im = image_data.convert('L')
+                        # Draws an image on the current figure
+                        plt.imshow(im, cmap='gray')
+                        for pair in SPOTS_TO_SCAN:
+                            plt.plot(pair[0], pair[1], marker="+", ms=5, mew=1, color="red")
+                        plt.pause(0.001)
+                        plt.clf()
+
+                    image_result.Release()
+                
+                except PySpin.SpinnakerException as ex:
+                    print('Error: %s' % ex)
+
+        except PySpin.SpinnakerException as ex:
+            print('Error: %s' % ex)
+
+        # im = np.array(Image.open('scanningTest.png').convert('L'))
         def mouse_event(event):
             if self.num_clicks < NUM_SPOTS:
-                plt.plot(event.xdata, event.ydata, marker="+", ms=5, mew=1, color="red")
-                fig.canvas.draw()
+                self.ax.plot(event.xdata, event.ydata, marker="+", ms=5, mew=1, color="red")
                 self.num_clicks += 1
-
                 SPOTS_TO_SCAN.append((event.xdata, event.ydata))
 
-            
             else: 
               msg = QMessageBox()
               msg.setIcon(QMessageBox.Critical)
@@ -111,7 +184,6 @@ class Canvas(FigureCanvas):
 
         
         cid = fig.canvas.mpl_connect('button_press_event', mouse_event)
-        plt.imshow(im)
 
 
 app = QApplication(sys.argv)
