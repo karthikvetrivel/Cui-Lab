@@ -12,4 +12,4 @@ data["calibrationComplete"] = False
 with open("settings.json", "w") as jsonFile:
     json.dump(data, jsonFile)
 
-import GUI.mainScanGui
+import GUI.mainCalibrationGui
