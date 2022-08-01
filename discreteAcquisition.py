@@ -49,6 +49,7 @@ def acquire_images(data, cam, nodemap, nodemap_tldevice):
         for i in range(NUM_IMAGES):
             try:
                 spot = data[str(i)]
+                # TODO: Maybe we need to initialize the serial port only once? 
                 baud_rate = 19200
                 timeout_sec = 5
                 portname ='/dev/cu.usbserial-FT3J30KX'

@@ -94,6 +94,27 @@ class Canvas(FigureCanvas):
         """ 
         Matplotlib Script
         """
+        self.loadCamera()
+        # im = np.array(Image.open('scanningTest.png').convert('L'))
+        def mouse_event(event):
+            if self.num_clicks < NUM_SPOTS:
+                plt.plot(event.xdata, event.ydata, marker="+", ms=5, mew=1, color="red")
+                self.num_clicks += 1
+                SPOTS_TO_SCAN.append((event.xdata, event.ydata))
+
+            else: 
+              msg = QMessageBox()
+              msg.setIcon(QMessageBox.Critical)
+              msg.setText("Error")
+              msg.setInformativeText("You have clicked too many spots.")
+              msg.setWindowTitle("Error")
+              msg.exec_()    
+
+        
+        cid = fig.canvas.mpl_connect('button_press_event', mouse_event)
+    
+
+    def loadCamera(self):
         system = PySpin.System.GetInstance()
         cam = (system.GetCameras())[0]
         nodemap_tldevice = cam.GetTLDeviceNodeMap()
@@ -166,24 +187,6 @@ class Canvas(FigureCanvas):
 
         except PySpin.SpinnakerException as ex:
             print('Error: %s' % ex)
-
-        # im = np.array(Image.open('scanningTest.png').convert('L'))
-        def mouse_event(event):
-            if self.num_clicks < NUM_SPOTS:
-                self.ax.plot(event.xdata, event.ydata, marker="+", ms=5, mew=1, color="red")
-                self.num_clicks += 1
-                SPOTS_TO_SCAN.append((event.xdata, event.ydata))
-
-            else: 
-              msg = QMessageBox()
-              msg.setIcon(QMessageBox.Critical)
-              msg.setText("Error")
-              msg.setInformativeText("You have clicked too many spots.")
-              msg.setWindowTitle("Error")
-              msg.exec_()    
-
-        
-        cid = fig.canvas.mpl_connect('button_press_event', mouse_event)
 
 
 app = QApplication(sys.argv)
